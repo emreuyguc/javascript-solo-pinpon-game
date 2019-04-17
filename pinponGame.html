@@ -1,0 +1,148 @@
+<html>
+<head>
+<script src="https://code.jquery.com/jquery-3.4.0.min.js" integrity="sha256-BJeo0qm959uMBGb65z40ejJYGSgR7REI4+CW1fNKwOg=" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jcanvas/21.0.1/min/jcanvas.min.js" ></script>
+</head>
+<body>
+<canvas id="game">
+</canvas>
+ <script>
+  
+class myRacket{
+	constructor(){
+		this.canvas = $('#game');
+		this.canvasWidth = 1000;
+		this.canvasHeight = 500;
+		
+		this.upHard = 0;
+		
+		this.goMyX;
+		this.goMyY;
+		this.myBall;
+		this.gameStatus;
+		
+		this.ballMoveDim = 4;
+		
+		this.canvas.prop('width', this.canvasWidth);
+		this.canvas.prop('height', this.canvasHeight);
+		
+		this.ballWallLimitX = [30 , this.canvasWidth - 30];
+		this.ballWallLimitY = [30 , this.canvasHeight - 30];
+		
+		this.canvas.addLayer({
+			name: 'borders',
+			type: 'line',
+			strokeStyle: '#33',
+			strokeWidth: 10,
+			x1: 0, y1: 0,
+			x2: 0, y2: this.canvasHeight,
+			x3: this.canvasWidth, y3: this.canvasHeight,
+			x4: this.canvasWidth, y4: 0,
+			x5: 0, y5: 0
+		});
+		
+		this.canvas.addLayer({
+			name: 'racket',
+			type: 'rectangle',
+			fillStyle: '#585',
+			x: (this.canvasWidth / 2), y: 450,
+			width: 160, height: 40
+		});
+		
+		this.canvas.addLayer({
+			name: 'ball',
+			type: 'ellipse',
+			fillStyle: '#c33',
+			x: (this.canvasWidth / 2), y: (this.canvasHeight / 2),
+			width: 50, height: 50
+		});
+
+		
+		var self = this;
+		this.canvas.mousemove(function(event){
+			self.racketControl(event.pageX);
+		});
+
+	}
+	
+	racketControl(coord){
+		this.canvas.setLayer('racket', {
+			x : coord
+		});
+	}
+
+	gameLoop(){
+		this.myBall = this.canvas.getLayer('ball');
+		this.myRacket = this.canvas.getLayer('racket');
+		
+		if(typeof this.goMyX == 'undefined' && typeof this.goMyY == 'undefined'){
+			this.goMyX = '-=';
+			this.goMyY = '-=';
+		}
+		
+		if(this.myBall.x <= this.ballWallLimitX[0]){
+			this.goMyX = '+=';
+			
+		}
+		else if(this.myBall.x >= this.ballWallLimitX[1]){
+			this.goMyX = '-=';
+		}
+		
+		if(this.myBall.y <= this.ballWallLimitY[0]){
+			this.goMyY = '+=';
+		}
+		else if(this.myBall.y >= this.ballWallLimitY[1]){
+		
+				this.canvas.addLayer({
+				type: 'text',
+				fillStyle: '#9cf',
+				strokeStyle: '#25a',
+				strokeWidth: 2,
+				x: this.canvasWidth / 2, y: this.canvasHeight / 2,
+				fontSize: 48,
+				fontFamily: 'Verdana, sans-serif',
+				text: 'Sadece ' + this.upHard + ' Vuruş :/'
+			})
+				
+			this.gameStatus = 'die';
+
+		}
+		
+		if(this.myBall.y == (this.myRacket.y - this.myRacket.height)){
+			if(
+			this.myBall.x >= (this.canvas.getLayer('racket').x - (this.canvas.getLayer('racket').width / 2 + 5)) 
+			&& 
+			this.myBall.x <= (this.canvas.getLayer('racket').x + (this.canvas.getLayer('racket').width / 2 - 5)) 
+			){
+				this.goMyY = '-=';
+
+				var myRandOps = ['-=', '+='];
+				var myUberSuperPyhscs = myRandOps[ Math.floor(Math.random() * myRandOps.length) ];
+
+				this.goMyX = myUberSuperPyhscs;
+				this.upHard += 1;
+			}
+		}
+		
+		this.canvas.setLayer('ball', {
+			x : this.goMyX + (this.ballMoveDim + this.upHard),
+			y : this.goMyY + (this.ballMoveDim + this.upHard)
+		});
+		
+		
+		this.canvas.drawLayers();
+	}
+}
+
+	var myGame = new myRacket;
+	myGame.loop = setInterval(function(){
+			myGame.gameLoop();
+			if(myGame.gameStatus == 'die'){
+				myGame.canvas.unbind('mousemove');
+				clearInterval(myGame.loop);
+			}
+        },16);
+  
+ </script>
+</body>
+</html>
